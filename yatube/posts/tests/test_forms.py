@@ -38,7 +38,7 @@ class PostsCreateFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        self.assertEqual(Post.objects.count(), posts_count+1)
+        self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertEqual(response.status_code, 200)
 
     def test_check_editing_existing_post(self):
