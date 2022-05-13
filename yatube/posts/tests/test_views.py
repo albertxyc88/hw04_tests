@@ -1,5 +1,6 @@
 # posts/tests/test_views.py
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -7,6 +8,9 @@ from django.urls import reverse
 from ..models import Group, Post
 
 User = get_user_model()
+
+# Количество создаваемых постов для теста должно быть меньше от 11 до 20.
+CREATE_POST: int = 20
 
 
 class PostsPagesTests(TestCase):
@@ -113,28 +117,31 @@ class PostsPagesTests(TestCase):
         for form in check_forms:
             for value, expected in form_fields.items():
                 with self.subTest(value=value):
-                    form_field = form.context.get('form').fields.get(value)
+                    form_field = response.context['form'].fields[value]
                     self.assertIsInstance(form_field, expected)
 
 
 class PaginatorViewsTest(TestCase):
     """Проверяем paginator на страницах"""
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='HasNoName')
+        cls.user = User.objects.create_user(username='Paginator')
         cls.group = Group.objects.create(
-            title='Тестовая группа',
-            slug='test_group',
-            description='Тестовое описание',
+            title='Группа paginator',
+            slug='paginator_group',
+            description='Описание для группы paginator',
         )
-        for i in range(13):
-            cls.post = Post.objects.create(
-                author=cls.user,
-                text=f'{i} - Тестовый пост с группой.',
-                group=cls.group,
-            )
+        Post.objects.bulk_create(
+            [
+                Post(
+                    text=f'{i} - Тестовый пост с группой.',
+                    author=cls.user,
+                    group=cls.group,
+                )
+                for i in range(CREATE_POST)
+            ]
+        )
 
     def setUp(self):
         # Создаем клиент
@@ -147,21 +154,27 @@ class PaginatorViewsTest(TestCase):
             reverse('posts:index'),
             reverse('posts:group_list', kwargs={'slug': self.group.slug}),
             reverse('posts:profile',
-                    kwargs={'username': self.post.author.username}),
+                    kwargs={'username': self.user.username}),
         )
         for page in check_pages:
             response = self.client.get(page)
             # Проверка: количество постов на первой странице равно 10.
-            self.assertEqual(len(response.context['page_obj']), 10)
+            self.assertEqual(
+                len(response.context['page_obj']),
+                settings.POSTS_ON_PAGE
+            )
 
     def test_second_page_contains_three_records(self):
         check_pages = (
             reverse('posts:index'),
             reverse('posts:group_list', kwargs={'slug': self.group.slug}),
             reverse('posts:profile',
-                    kwargs={'username': self.post.author.username}),
+                    kwargs={'username': self.user.username}),
         )
         # Проверка: на второй странице должно быть три поста.
         for page in check_pages:
             response = self.client.get(page + '?page=2')
-            self.assertEqual(len(response.context['page_obj']), 3)
+            self.assertEqual(
+                len(response.context['page_obj']),
+                CREATE_POST - settings.POSTS_ON_PAGE
+            )

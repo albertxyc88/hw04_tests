@@ -33,7 +33,13 @@ class PostModelTest(TestCase):
             with self.subTest(model=model):
                 expect_model = getattr(PostModelTest, model)
                 expect_element = getattr(expect_model, element)
-                self.assertEqual(str(expect_model), expect_element[:LIMIT_STR])
+                if model == 'post':
+                    self.assertEqual(
+                        str(expect_model),
+                        expect_element[:LIMIT_STR]
+                    )
+                else:
+                    self.assertEqual(str(expect_model), expect_element)
 
     def test_help_text_post(self):
         """Проверяем, что у модели post у каждого поля указаны help_text."""
@@ -50,7 +56,7 @@ class PostModelTest(TestCase):
                     post._meta.get_field(field).help_text, expected_value)
 
     def test_help_text_group(self):
-        """Проверяем, что у модели post у каждого поля указаны help_text."""
+        """Проверяем, что у модели group у каждого поля указаны help_text."""
         group = PostModelTest.group
         field_help_texts = {
             'title': 'Название группы',
@@ -63,6 +69,7 @@ class PostModelTest(TestCase):
                     group._meta.get_field(field).help_text, expected_value)
 
     def test_verbose_name_post(self):
+        """Проверяем, что у модели post у каждого поля указан verbose_name."""
         post = PostModelTest.post
         field_verbose_names = {
             'text': 'Текст',
@@ -76,6 +83,7 @@ class PostModelTest(TestCase):
                     post._meta.get_field(field).verbose_name, expected_value)
 
     def test_verbose_name_group(self):
+        """Проверяем, что у модели group у каждого поля указан verbose_name."""
         group = PostModelTest.group
         field_verbose_names = {
             'title': 'Название',

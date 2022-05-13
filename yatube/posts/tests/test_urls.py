@@ -52,8 +52,7 @@ class PostsURLTests(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_page_as_user_edit_page_as_author(self):
-        """
-        Проверяем на доступность страницу /create/
+        """Проверяем на доступность страницу /create/
         авторизованным пользователем.
         Страницу редактирования поста автором поста.
         """
@@ -66,14 +65,13 @@ class PostsURLTests(TestCase):
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_page_as_guest(self):
-        """Проверяем страницу /create/: Гостя - перенаправляем"""
+        """Проверяем страницу /create/: Гостя - перенаправляем."""
         response = self.guest_client.get('/create/')
         self.assertRedirects(response, ('/auth/login/?next=/create/'))
 
     def test_edit_page_as_non_author(self):
-        """
-        Проверим редирект при попытке редактировать пост
-        гостем или не автором
+        """Проверим редирект при попытке редактировать пост
+        гостем или не автором.
         """
         users_urls = {
             'guest_client': f'/auth/login/?next=/posts/'
@@ -87,10 +85,12 @@ class PostsURLTests(TestCase):
                 self.assertRedirects(response, url)
 
     def test_unexisting_page(self):
+        """Проверка наличия ошибки несуществующей страницы."""
         response = self.guest_client.get('/unexisting_page/')
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_check_page_templates(self):
+        """Проверяем корректность шаблонов у страниц."""
         pages = {
             '/': 'posts/index.html',
             '/group/test_group/': 'posts/group_list.html',
