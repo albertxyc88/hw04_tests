@@ -84,21 +84,14 @@ class PostsPagesTests(TestCase):
         for page in check_pages:
             with self.subTest(page=page):
                 response = self.authorized_client.get(page)
-                first_object = response.context['page_obj'][0]
-                task_author_0 = first_object.author.username
-                task_group_0 = first_object.group
-                task_text_0 = first_object.text
-                self.assertEqual(task_author_0, self.post.author.username)
-                self.assertEqual(task_group_0, self.post.group)
-                self.assertEqual(task_text_0, self.post.text)
+                self.assertIsNotNone(response.context['page_obj'])
 
     def test_post_detail_correct_context(self):
         response = self.authorized_client.get(
             reverse('posts:post_detail', kwargs={'post_id': self.post.id})
         )
-        self.assertEqual(response.context.get('post').group, self.post.group)
-        self.assertEqual(response.context.get('post').author, self.post.author)
-        self.assertEqual(response.context.get('post').text, self.post.text)
+        print(self.post)
+        self.assertEqual(response.context['post'], self.post)
 
     def test_create_edit_post_having_correct_form(self):
         check_forms = (
@@ -117,7 +110,7 @@ class PostsPagesTests(TestCase):
         for form in check_forms:
             for value, expected in form_fields.items():
                 with self.subTest(value=value):
-                    form_field = response.context['form'].fields[value]
+                    form_field = form.context['form'].fields[value]
                     self.assertIsInstance(form_field, expected)
 
 

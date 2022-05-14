@@ -53,6 +53,7 @@ class PostsCreateFormTests(TestCase):
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertTrue(
             Post.objects.filter(
+                pk=posts_count + 1,
                 text='Новый текст очередного поста.',
                 group=self.group.id
             ).exists()
