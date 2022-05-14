@@ -16,7 +16,6 @@ def index(request):
     page_obj = paginator(request, posts)
     context = {
         'title': title,
-        'posts': posts,
         'page_obj': page_obj,
     }
     return render(request, template, context)
@@ -29,7 +28,6 @@ def group_posts(request, slug):
     page_obj = paginator(request, posts)
     context = {
         'group': group,
-        'posts': posts,
         'page_obj': page_obj,
     }
     return render(request, template, context)
@@ -45,7 +43,6 @@ def profile(request, username):
     context = {
         'author': author,
         'title': title,
-        'posts': posts,
         'page_obj': page_obj,
     }
     return render(request, template, context)
@@ -54,7 +51,7 @@ def profile(request, username):
 def post_detail(request, post_id):
     template = 'posts/post_detail.html'
     post = Post.objects.get(pk=post_id)
-    title = f'Пост { post.text[:TITLE_LENGTH] }'
+    title = post.text[:TITLE_LENGTH]
     count = Post.objects.filter(author=post.author).count()
     context = {
         'post_id': post_id,

@@ -1,16 +1,19 @@
 # posts/tests/test_views.py
-from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from ..forms import PostForm
 from ..models import Group, Post
 
 User = get_user_model()
 
 # Количество создаваемых постов для теста должно быть меньше от 11 до 20.
 CREATE_POST: int = 20
+
+# Для title на странице post_detail ограничение в 30 символов.
+TITLE_LENGTH: int = 30
 
 
 class PostsPagesTests(TestCase):
@@ -25,7 +28,7 @@ class PostsPagesTests(TestCase):
         )
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовый пост с группой',
+            text='Тестовый пост с группой и с длинным текстом',
             group=cls.group,
         )
 
@@ -84,14 +87,17 @@ class PostsPagesTests(TestCase):
         for page in check_pages:
             with self.subTest(page=page):
                 response = self.authorized_client.get(page)
-                self.assertIsNotNone(response.context['page_obj'])
+                self.assertEqual(response.context['page_obj'][0], self.post)
 
     def test_post_detail_correct_context(self):
         response = self.authorized_client.get(
             reverse('posts:post_detail', kwargs={'post_id': self.post.id})
         )
-        print(self.post)
+        count = Post.objects.filter(author=self.post.author).count()
+        title = self.post.text[:TITLE_LENGTH]
         self.assertEqual(response.context['post'], self.post)
+        self.assertEqual(response.context['title'], title)
+        self.assertEqual(response.context['count'], count)
 
     def test_create_edit_post_having_correct_form(self):
         check_forms = (
@@ -103,15 +109,8 @@ class PostsPagesTests(TestCase):
                 )
             )
         )
-        form_fields = {
-            'text': forms.fields.CharField,
-            'group': forms.fields.ChoiceField,
-        }
         for form in check_forms:
-            for value, expected in form_fields.items():
-                with self.subTest(value=value):
-                    form_field = form.context['form'].fields[value]
-                    self.assertIsInstance(form_field, expected)
+            self.assertIsInstance(form.context['form'], PostForm)
 
 
 class PaginatorViewsTest(TestCase):
