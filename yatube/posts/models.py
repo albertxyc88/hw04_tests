@@ -32,6 +32,11 @@ class Post(models.Model):
         verbose_name='Группа',
         help_text='Группа поста',
     )
+    image = models.ImageField(
+        'Картинка',
+        upload_to='posts/',
+        blank=True
+    )
 
     class Meta:
         ordering = ('-pub_date',)

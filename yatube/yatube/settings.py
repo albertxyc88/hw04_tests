@@ -36,9 +36,13 @@ ALLOWED_HOSTS = [
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
+
 # Application definition
 
 INSTALLED_APPS = [
+    'sorl.thumbnail',
     'posts.apps.PostsConfig',
     'users.apps.UsersConfig',
     'about.apps.AboutConfig',
@@ -136,6 +140,8 @@ STATIC_URL = '/static/'
 
 LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'posts:index'
+
+CSRF_FAILURE_VIEW = 'core.views.csrf_failure'
 
 #  подключаем движок filebased.EmailBackend
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
