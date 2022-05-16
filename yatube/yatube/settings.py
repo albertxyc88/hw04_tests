@@ -36,6 +36,8 @@ ALLOWED_HOSTS = [
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
+# Media files folder
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
 

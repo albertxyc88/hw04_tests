@@ -66,12 +66,16 @@ def post_detail(request, post_id):
 def post_create(request):
     template = 'posts/create_post.html'
     title = 'Добавить запись'
-    form = PostForm(request.POST or None)
+    form = PostForm(
+        request.POST or None,
+        request.FILES or None,
+    )
     if form.is_valid():
         text = form.cleaned_data['text']
         group = form.cleaned_data['group']
+        image = form.cleaned_data['image']
         author = request.user
-        Post.objects.create(text=text, author=author, group=group)
+        Post.objects.create(text=text, author=author, group=group, image=image)
         return redirect('posts:profile', username=request.user)
     context = {
         'form': form,
@@ -88,7 +92,11 @@ def post_edit(request, post_id):
         return redirect('posts:post_detail', post_id=post_id)
     title = 'Редактировать запись'
     is_edit = True
-    form = PostForm(instance=post, data=request.POST or None)
+    form = PostForm(
+        instance=post,
+        data=request.POST or None,
+        files=request.FILES or None,
+    )
     if form.is_valid():
         form.save()
         return redirect('posts:post_detail', post_id=post_id)
