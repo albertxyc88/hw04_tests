@@ -1,13 +1,19 @@
 # posts/tests/test_views.py
+import shutil
+import tempfile
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from ..forms import PostForm
 from ..models import Group, Post
 
 User = get_user_model()
+
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
 # Количество создаваемых постов для теста должно быть меньше от 11 до 20.
 CREATE_POST: int = 20
@@ -16,6 +22,7 @@ CREATE_POST: int = 20
 TITLE_LENGTH: int = 30
 
 
+@override_settings (MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostsPagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -26,11 +33,30 @@ class PostsPagesTests(TestCase):
             slug='test_group',
             description='Тестовое описание',
         )
+        small_gif = (            
+             b'\x47\x49\x46\x38\x39\x61\x02\x00'
+             b'\x01\x00\x80\x00\x00\x00\x00\x00'
+             b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+             b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+             b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
         cls.post = Post.objects.create(
             author=cls.user,
             text='Тестовый пост с группой и с длинным текстом',
             group=cls.group,
+            image=uploaded
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
         # Создаем клиент
@@ -98,6 +124,7 @@ class PostsPagesTests(TestCase):
         self.assertEqual(response.context['post'], self.post)
         self.assertEqual(response.context['title'], title)
         self.assertEqual(response.context['count'], count)
+        self.assertEqual(response.context['image'], 'posts/small.gif')
 
     def test_create_edit_post_having_correct_form(self):
         check_forms = (
