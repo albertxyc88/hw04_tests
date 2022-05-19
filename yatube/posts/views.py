@@ -2,8 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .addons import paginator
-from .forms import PostForm
-from .models import Group, Post, User
+from .forms import CommentForm, PostForm
+from .models import Comment, Group, Post, User
 
 # Numbers of title length
 TITLE_LENGTH: int = 30
@@ -53,11 +53,15 @@ def post_detail(request, post_id):
     post = Post.objects.get(pk=post_id)
     title = post.text[:TITLE_LENGTH]
     count = Post.objects.filter(author=post.author).count()
+    form = CommentForm()
+    comments = Comment.objects.select_related('author').filter(post=post)
     context = {
         'post_id': post_id,
         'post': post,
         'count': count,
         'title': title,
+        'comments': comments,
+        'form': form,
     }
     return render(request, template, context)
 
@@ -106,3 +110,14 @@ def post_edit(request, post_id):
         'is_edit': is_edit,
     }
     return render(request, template, context)
+
+@login_required
+def add_comment(request, post_id):
+    # Получите пост
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+    return redirect('posts:post_detail', post_id=post_id)

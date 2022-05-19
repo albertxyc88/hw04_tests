@@ -22,7 +22,7 @@ CREATE_POST: int = 20
 TITLE_LENGTH: int = 30
 
 
-@override_settings (MEDIA_ROOT=TEMP_MEDIA_ROOT)
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostsPagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -33,7 +33,7 @@ class PostsPagesTests(TestCase):
             slug='test_group',
             description='Тестовое описание',
         )
-        small_gif = (            
+        small_gif = (
              b'\x47\x49\x46\x38\x39\x61\x02\x00'
              b'\x01\x00\x80\x00\x00\x00\x00\x00'
              b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
@@ -124,7 +124,6 @@ class PostsPagesTests(TestCase):
         self.assertEqual(response.context['post'], self.post)
         self.assertEqual(response.context['title'], title)
         self.assertEqual(response.context['count'], count)
-        self.assertEqual(response.context['image'], 'posts/small.gif')
 
     def test_create_edit_post_having_correct_form(self):
         check_forms = (
