@@ -18,5 +18,8 @@ urlpatterns = [
     # Редактирование записи
     path('posts/<int:post_id>/edit/', views.post_edit, name='post_edit'),
     # Добавление комментария
-    path('posts/<int:post_id>/comment/', views.add_comment, name='add_comment'),
+    path(
+        'posts/<int:post_id>/comment/',
+        views.add_comment, name='add_comment'
+    ),
 ]

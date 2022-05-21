@@ -1,3 +1,4 @@
+from core.models import PubDateModel
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -6,15 +7,10 @@ User = get_user_model()
 LIMIT_STR: int = 15
 
 
-class Post(models.Model):
+class Post(PubDateModel):
     text = models.TextField(
         verbose_name='Текст',
         help_text='Текст поста',
-    )
-    pub_date = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата публикации',
-        help_text='Дата публикации поста',
     )
     author = models.ForeignKey(
         User,
@@ -73,7 +69,7 @@ class Group(models.Model):
         return self.title
 
 
-class Comment(models.Model):
+class Comment(PubDateModel):
     post = models.ForeignKey(
         'Post',
         on_delete=models.CASCADE,
@@ -93,12 +89,7 @@ class Comment(models.Model):
         verbose_name='Комментарий',
         help_text='Комментарий к посту',
     )
-    created = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата комментария',
-        help_text='Дата публикации комментария',
-    )
 
     class Meta:
         verbose_name = 'Комментарий'
-        verbose_name_plural = 'Комментариев'
+        verbose_name_plural = 'Комментарии'

@@ -46,7 +46,7 @@ class PostModelTest(TestCase):
         post = PostModelTest.post
         field_help_texts = {
             'text': 'Текст поста',
-            'pub_date': 'Дата публикации поста',
+            'pub_date': 'Дата публикации',
             'author': 'Автор поста',
             'group': 'Группа поста',
         }

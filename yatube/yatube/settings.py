@@ -39,7 +39,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 # Media files folder
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Application definition
 
@@ -152,3 +152,9 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 # Numbers of posts shown on page
 POSTS_ON_PAGE: int = 10
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}

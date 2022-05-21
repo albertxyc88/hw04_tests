@@ -18,17 +18,10 @@ class PostForm(forms.ModelForm):
             'image': 'Картинка к посту.'
         }
 
+
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ('post', 'author', 'text')
-        labels = {
-            'post': 'Пост',
-            'author': 'Автор',
-            'text':'Комментарий'
-        }
-        help_texts = {
-            'post': 'Пост для комментария',
-            'author': 'Автор поста',
-            'text': 'Комментарий'
-        }
+        fields = ('text',)
+        labels = {'text': 'Комментарий'}
+        help_texts = {'text': 'Комментарий'}

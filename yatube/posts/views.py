@@ -54,7 +54,7 @@ def post_detail(request, post_id):
     title = post.text[:TITLE_LENGTH]
     count = Post.objects.filter(author=post.author).count()
     form = CommentForm()
-    comments = Comment.objects.select_related('author').filter(post=post)
+    comments = Comment.objects.select_related('author').filter(post=post.id)
     context = {
         'post_id': post_id,
         'post': post,
@@ -64,6 +64,17 @@ def post_detail(request, post_id):
         'form': form,
     }
     return render(request, template, context)
+
+
+@login_required
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        form.instance.author = request.user
+        form.instance.post = post
+        form.save()
+    return redirect('posts:post_detail', post_id=post_id)
 
 
 @login_required
@@ -110,14 +121,3 @@ def post_edit(request, post_id):
         'is_edit': is_edit,
     }
     return render(request, template, context)
-
-@login_required
-def add_comment(request, post_id):
-    # Получите пост
-    form = CommentForm(request.POST or None)
-    if form.is_valid():
-        comment = form.save(commit=False)
-        comment.author = request.user
-        comment.post = post
-        comment.save()
-    return redirect('posts:post_detail', post_id=post_id)

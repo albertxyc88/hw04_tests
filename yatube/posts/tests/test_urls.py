@@ -103,3 +103,12 @@ class PostsURLTests(TestCase):
             with self.subTest(page=page):
                 response = self.authorized_client.get(page)
                 self.assertTemplateUsed(response, template)
+
+    def test_add_comment_as_guest(self):
+        """Проверяем добавление комментария /posts/id/comment/:
+        Гостя - перенаправляем на авторизацию."""
+        response = self.guest_client.get(f'/posts/{self.post.id}/comment/')
+        self.assertRedirects(
+            response,
+            (f'/auth/login/?next=/posts/{self.post.id}/comment/')
+        )
