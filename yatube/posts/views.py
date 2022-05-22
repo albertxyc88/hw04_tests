@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .addons import paginator
 from .forms import CommentForm, PostForm
-from .models import Comment, Group, Post, User
+from .models import Comment, Follow, Group, Post, User
 
 # Numbers of title length
 TITLE_LENGTH: int = 30
@@ -36,14 +36,29 @@ def group_posts(request, slug):
 def profile(request, username):
     template = 'posts/profile.html'
     author = get_object_or_404(User, username=username)
-    posts = (Post.objects.select_related('author', 'group')
-             .filter(author=author))
     title = f'Профайл пользователя { author.get_full_name() }'
+    posts = Post.objects.select_related(
+                'author', 'group'
+            ).filter(author=author)
+    count = posts.count()
     page_obj = paginator(request, posts)
+    if request.user.is_authenticated:
+        following = Follow.objects.filter(
+                user=request.user, author=author
+            ).exists()
+    else:
+        following = False
+    if request.user == author:
+        user_not_author = True
+    else:
+        user_not_author = False
     context = {
         'author': author,
         'title': title,
         'page_obj': page_obj,
+        'count': count,    
+        'following': following,
+        'user_not_author': user_not_author,
     }
     return render(request, template, context)
 
@@ -121,3 +136,37 @@ def post_edit(request, post_id):
         'is_edit': is_edit,
     }
     return render(request, template, context)
+
+
+@login_required
+def follow_index(request):
+    template = 'posts/follow.html'
+    title = "Последние обновления авторов"
+    posts = Post.objects.filter(author__following__user=request.user)
+    page_obj = paginator(request, posts)
+    context = {
+        'title': title,
+        'page_obj': page_obj,
+    }
+    return render(request, template, context)
+
+
+@login_required
+def profile_follow(request, username):
+    # Подписаться на автора
+    user = request.user
+    author = get_object_or_404(User, username=username)
+    follower_count = Follow.objects.filter(user=user, author=author).count()
+    if user != author and follower_count == 0:
+        Follow.objects.create(user=user, author=author)
+    return redirect('posts:profile', username=author)
+
+
+@login_required
+def profile_unfollow(request, username):
+    # Отписаться от автора
+    author = get_object_or_404(User, username=username)
+    follower = Follow.objects.filter(user=request.user, author=author)
+    if follower.exists():
+        follower.delete()
+    return redirect('posts:profile', username=author)

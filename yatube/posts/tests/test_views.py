@@ -4,12 +4,13 @@ import tempfile
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from ..forms import PostForm
-from ..models import Group, Post
+from ..models import Follow, Group, Post
 
 User = get_user_model()
 
@@ -196,3 +197,106 @@ class PaginatorViewsTest(TestCase):
                 len(response.context['page_obj']),
                 CREATE_POST - settings.POSTS_ON_PAGE
             )
+
+
+class CachingTest(TestCase):
+    """Проверка работы кэша на странице index."""
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='HasNoName')
+        cls.post = Post.objects.create(
+            author=cls.user,
+            text='Текст поста.',
+        )
+
+    def setUp(self):
+        # Создаем клиент
+        self.authorized_client = Client()
+        # Авторизуем пользователя
+        self.authorized_client.force_login(self.user)
+
+    def test_index_page_caching(self):
+        """Проверяем работу кэша списка записей на главной странице."""
+        response_1 = self.authorized_client.get(reverse('posts:index'))
+        Post.objects.filter(pk=self.post.id).delete()
+        response_2 = self.authorized_client.get(reverse('posts:index'))
+        self.assertEqual(response_1.content, response_2.content)
+        cache.clear()
+        response_3 = self.authorized_client.get(reverse('posts:index'))
+        self.assertNotEqual(response_1.content, response_3.content)
+
+
+class FollowingTest(TestCase):
+    """Проверка работы подписок, отписок на страницах авторов."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='HasNoName')
+        cls.user_two = User.objects.create_user(username='HasNoNameTwo')
+        cls.post = Post.objects.create(
+            author=cls.user,
+            text='Текст поста.',
+        )
+        cls.author = User.objects.create_user(username='Author')
+        cls.post_author = Post.objects.create(
+            author=cls.author,
+            text='Текст поста. (Автор)',
+        )
+
+    def setUp(self):
+        # Создаем клиент
+        self.authorized_client = Client()
+        self.authorized_client_two = Client()
+        # Авторизуем пользователя
+        self.authorized_client.force_login(self.user)
+        self.authorized_client_two.force_login(self.user_two)
+
+
+    def test_following_unfollowing_author(self):
+        """Проверяем сначала подписку на автора,
+        затем отписку от автора."""
+        count = Follow.objects.filter(user=self.user).count()
+        # Подписываемся на автора.
+        response = self.authorized_client.post(
+            reverse('posts:profile_follow', kwargs={'username': self.author}),
+            follow=True
+        )
+        self.assertRedirects(
+            response,
+            reverse('posts:profile', kwargs={'username': self.author})
+        )
+        self.assertEqual(
+            Follow.objects.filter(user=self.user).count(),
+            count + 1
+        )
+        # Отписываемся от автора. 
+        response = self.authorized_client.post(
+            reverse(
+                'posts:profile_unfollow',
+                kwargs={'username': self.author}
+            ),
+            follow=True
+        )
+        self.assertRedirects(
+            response,
+            reverse('posts:profile', kwargs={'username': self.author})
+        )
+        self.assertEqual(
+            Follow.objects.filter(user=self.user).count(),
+            count
+        )
+
+    def test_new_post_on_following_page(self):
+        """"Проверяем что пост появляется в избранной ленте после
+        подписки у пользователя, а не у подписанного нет."""
+        Follow.objects.create(
+            user=self.user,
+            author=self.author
+        )
+        response = self.authorized_client.get('/follow/')
+        post_text = response.context["page_obj"][0].text
+        self.assertEqual(post_text, self.post_author.text)
+        response = self.authorized_client_two.get('/follow/')
+        self.assertNotContains(response, self.post_author.text)

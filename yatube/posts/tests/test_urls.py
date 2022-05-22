@@ -98,6 +98,7 @@ class PostsURLTests(TestCase):
             f'/posts/{self.post.id}/': 'posts/post_detail.html',
             f'/posts/{self.post.id}/edit/': 'posts/create_post.html',
             '/create/': 'posts/create_post.html',
+            '/unexisting_page/': 'core/404.html',
         }
         for page, template in pages.items():
             with self.subTest(page=page):
@@ -105,8 +106,8 @@ class PostsURLTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_add_comment_as_guest(self):
-        """Проверяем добавление комментария /posts/id/comment/:
-        Гостя - перенаправляем на авторизацию."""
+        """Проверяем работу добавления комментария /posts/id/comment/:
+        Гостю не даем публиковать - перенаправляем на авторизацию."""
         response = self.guest_client.get(f'/posts/{self.post.id}/comment/')
         self.assertRedirects(
             response,

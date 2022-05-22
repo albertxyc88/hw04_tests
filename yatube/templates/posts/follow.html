@@ -1,11 +1,11 @@
-{# templates/posts/index.html #}
+{# templates/posts/follow.html #}
 
 {% extends 'base.html' %}
 {% block title %}
   {{ title }}
 {% endblock %}
+{% load cache %}
 {% block content %}
-  {% load cache %}
   {% include 'includes/switcher.html' %}
   {% cache 20 index_page page_obj %}
     {% for post in page_obj %}
@@ -16,4 +16,4 @@
     {% endfor %}
   {% endcache %}
   {% include 'posts/paginator.html' %}
-{% endblock %}
+{% endblock %} 
