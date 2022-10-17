@@ -1,3 +1,35 @@
-# hw04_tests
+# Unittest в Django: тестирование проекта Yatube - https://github.com/albertxyc88/hw05_final
+## Описание
+Тестирование через Unittest написанного проекта Yatube. 
 
-[![CI](https://github.com/yandex-praktikum/hw04_tests/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/yandex-praktikum/hw04_tests/actions/workflows/python-app.yml)
+Тестирование Models - модели, методы, проверка корректности help_text, verbose_name для каждого поля.
+Тестирование URLs - url, шаблоны, права доступа, статичные старницы.
+Тестирование Views - тесты, проверяющие, что во view-функциях используются правильные html-шаблоны, пагинатор, кэш, подписки на авторов, подписка на посты, создание постов.
+Тестирование Forms - валидность форм (создание/редактирование поста, комментария).
+
+
+## Технологии
+Python 3.7, Django 2.2, SQLite3, Unittest
+
+## Установка 
+
+- склонируйте репозитарий 
+- создайте и активируйте виртуальное окружение
+
+`python3 -m venv venv`
+
+`python3 venv/bin/activate`
+
+- установите все зависимости из файла requirements.txt командой: 
+
+`pip install -r requirements.txt`
+
+- выполните миграции
+
+`python manage.py migrate`
+
+- перейтив папку posts и запустить тесты
+
+`cd yatube/posts`
+
+`pytest`
